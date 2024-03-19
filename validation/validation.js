@@ -1,6 +1,6 @@
 import { check } from 'express-validator';
 
-const validateRegistration = [
+export const validateRegistration = [
     check("email")
         .notEmpty().withMessage("Email is required")
         .isLength({ min: 5}).withMessage("Email is too short")
@@ -28,4 +28,22 @@ const validateRegistration = [
         .isLength({ min: 1, max: 45 }).withMessage("Last name must be between 1 and 45 characters long")
 ]
 
-export default validateRegistration
+
+export const validateLogIn = [
+      check("email")
+            .notEmpty().withMessage("Email is required")
+            .isLength({ min: 5}).withMessage("Email is too short")
+            .custom((value) => {
+                    const allowedDomains = ['@gmail.com', '@yahoo.com'];
+                    const domain = value.split('@')[1];
+                    if (!allowedDomains.includes(`@${domain}`)) {
+                        throw new Error('Invalid email.');
+                    }
+                    return true;
+        }), 
+
+      check("password")
+            .notEmpty().withMessage("Password is required")
+            .isLength({ min: 8, max: 25 }).withMessage("Password is incorrct"),
+]
+
