@@ -1,6 +1,7 @@
-const mongoose=require('mongoose'); //ORM 
+const mongoose=require('mongoose');
 const validator=require('validator')
 const bcrypt=require('bcryptjs')
+const crypto =require('crypto')
 const userSchema = new mongoose.Schema ({
    fName :{
      type:String,
@@ -18,7 +19,8 @@ const userSchema = new mongoose.Schema ({
    email :{
     type:String,
     validate:[validator.isEmail,"This not a valid Email"],
-    unique:[true,"this Email used Before"],
+    unique:[true,"this Email used Before"], 
+    required :[true,"U must enter your Email"]
    } ,
    password :{
     type:String,
@@ -40,10 +42,14 @@ const userSchema = new mongoose.Schema ({
     default: false ,
   
    } ,
+   passwordResetToken :{
+    type :String
+   } ,
+   passwordResetTokenExpire :{
+    type :Date
+   } ,
 
 })
-
-
 
 
 userSchema.pre('save', async function (next) { //middle ware 
@@ -67,6 +73,13 @@ userSchema.pre('save', async function (next) { //middle ware
    return await bcrypt.compare(candidatePassword, userPassword); // compare bt3mal hash le candidate we btcompare b3deha
  };
 
+
+ userSchema.methods.createResetPasswordToken = function() {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.passwordResetTokenExpire = Date.now() + 50 * 60 * 1000; // 50minutes
+  return resetToken;
+};
  
 const User  = mongoose.model('User',userSchema)
 
