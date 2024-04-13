@@ -67,7 +67,7 @@ exports.getCategory = async (req, res) => {
     }
 }
 
-//correct
+//correct & their items 
 exports.deleteCategory = async (req, res) => {
     try {
         const id = req.params.id;

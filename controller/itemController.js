@@ -18,7 +18,7 @@ exports.addItem =async (req,res)=>{
                 
             })
         }
-    }
+}
 
 exports.getItems =async (req,res) =>{
     try{

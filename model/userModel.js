@@ -2,6 +2,7 @@ const mongoose=require('mongoose');
 const validator=require('validator')
 const bcrypt=require('bcryptjs')
 const crypto =require('crypto')
+
 const userSchema = new mongoose.Schema ({
    fName :{
      type:String,
@@ -48,7 +49,12 @@ const userSchema = new mongoose.Schema ({
    passwordResetTokenExpire :{
     type :Date
    } ,
-
+   otp :{
+    type : Number  ,
+    unique :true ,
+    expiryDate : Date
+   } 
+   
 })
 
 
@@ -65,14 +71,12 @@ userSchema.pre('save', async function (next) { //middle ware
  });
 
 
-
  userSchema.methods.correctPassword = async function (
    candidatePassword,
    userPassword
  ) {
    return await bcrypt.compare(candidatePassword, userPassword); // compare bt3mal hash le candidate we btcompare b3deha
  };
-
 
  userSchema.methods.createResetPasswordToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
