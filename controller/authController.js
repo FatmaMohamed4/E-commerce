@@ -3,7 +3,7 @@ const User=require('../model/userModel');
 const {promisify} =require ('util')
 const crypto =require('crypto');
 const OTP =require ('otp');
-const { generateOTP, sendOTP, verifyOTP } = require('../utilities/OTP/otp.js');
+const {sendOTP } = require('../utilities/OTP/otp.js');
 const otp = require('../utilities/OTP/otp.js');
 
 
@@ -92,14 +92,64 @@ next()
 }
 
 exports.forgotPassword =async(req, res)=> {
+    try{
+    const user = await User.findOne({email:req.body.email})
+    if (!user){
+        return res.status(404).json({
+            status:false,
+            message:"Account 't found"
+        })
+    }
 
+    const otp = await user.generateOtp()
+    await user.save({ validateBeforeSave: false });
+      sendOTP(req.body.email,otp)
+
+    res.status(200).json({
+        status:true,
+        meesage:"otp generated and send to your email"
+    })
+}catch(err){
+    res.status(401).json({
+        status:false,
+        err
+    })
+}
 }
 
+exports.verifyOTP=async(req,res)=>{
+    try{
+        const otp=crypto.createHash('sha256').update(req.body.otp).digest('hex');;
+        const user = await User.findOne({otp:otp,otpExpires:{ $gt: Date.now() },})
+        if(!user){
+            return res.status(401).json({
+                status:false,
+                message:"Otp is n't valid"
+            })
+        }
+        const token = jwt.sign({ userId: user._id }, 'E-commerce App# first App',{expiresIn:"90d"});  
+        res.status(200).json({
+            status:true,
+            messge:"Comfirmed OTP",
+            token
+        })
+    }  
+    catch(err){
 
+    }
+}
 
 exports.resetPassword = async (req, res) => {
+    //Protect
     try {
-      
+      const user =req.user;
+      user.password=req.body.password
+      user.confirmPassword=req.body.confirmPassword
+      user.save({validateBeforeSave:true})
+      res.status(200).json({
+        status:true,
+        user
+      })
     } catch (error) {
         console.error('Error in resetPassword:', error);
         res.status(500).json({ message: 'Internal server error' });

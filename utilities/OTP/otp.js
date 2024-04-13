@@ -1,14 +1,6 @@
 const nodemailer = require('nodemailer');
 // const User = require('../model/userModel.js');
 
-// Function to generate a random OTP
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000); //6 digit OTP
-    const expiryTime = new Date(); 
-    expiryTime.setTime(expiryTime.getTime() + 10 * 60 * 1000); // Expiry time is set to 10 minutes from now
-
-
-}
 
 function sendOTP(email, otp) {
     const transporter = nodemailer.createTransport({
@@ -64,7 +56,7 @@ function sendOTP(email, otp) {
 
 module.exports = {
     sendOTP: sendOTP,
-    generateOTP: generateOTP,
+   
     // verifyOTP
     // compareOTP
 }

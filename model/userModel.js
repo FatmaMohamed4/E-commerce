@@ -2,7 +2,8 @@ const mongoose=require('mongoose');
 const validator=require('validator')
 const bcrypt=require('bcryptjs')
 const crypto =require('crypto')
-
+const generateOTP=require('otp-generator');
+const { type } = require('os');
 const userSchema = new mongoose.Schema ({
    fName :{
      type:String,
@@ -42,18 +43,14 @@ const userSchema = new mongoose.Schema ({
     type:Boolean,
     default: false ,
   
-   } ,
-   passwordResetToken :{
-    type :String
-   } ,
-   passwordResetTokenExpire :{
-    type :Date
-   } ,
-   otp :{
-    type : Number  ,
-    unique :true ,
-    expiryDate : Date
-   } 
+   },
+   otp:{
+    type:String
+   },
+   otpExpires:{
+    type:Date
+   }
+
    
 })
 
@@ -78,11 +75,16 @@ userSchema.pre('save', async function (next) { //middle ware
    return await bcrypt.compare(candidatePassword, userPassword); // compare bt3mal hash le candidate we btcompare b3deha
  };
 
- userSchema.methods.createResetPasswordToken = function() {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  this.passwordResetTokenExpire = Date.now() + 50 * 60 * 1000; // 50minutes
-  return resetToken;
+ 
+ userSchema.methods.generateOtp = async function () {
+  const OTP = generateOTP.generate(process.env.OTP_LENGTH, {
+    upperCaseAlphabets: true,
+    specialChars: false,
+  });
+  this.otp = crypto.createHash('sha256').update(OTP).digest('hex');
+  console.log("here")
+  this.otpExpires = Date.now() + 10 * 60 * 1000; // valid 10 min
+  return OTP;
 };
  
 const User  = mongoose.model('User',userSchema)
