@@ -1,5 +1,5 @@
-const Category = require("../model/categoryModel.js")
 const Item = require("../model/itemModel.js")
+
 
 exports.addItem =async (req,res)=>{
     try{

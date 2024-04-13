@@ -5,7 +5,7 @@ const authController = require('../controller/authController.js')
 
 
 
-router.post('/add',addItem)
+router.post('/add',authController.protect,authController.restrictTo(),addItem)
 
 router.get('/all',getItems)
 router.get('/:id',getItemById)

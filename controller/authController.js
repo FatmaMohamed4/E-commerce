@@ -2,9 +2,8 @@ const jwt  = require('jsonwebtoken');
 const User=require('../model/userModel');
 const {promisify} =require ('util')
 const crypto =require('crypto');
-const OTP =require ('otp');
-const {sendOTP } = require('../utilities/OTP/otp.js');
-const otp = require('../utilities/OTP/otp.js');
+
+const {sendToEmail } = require('../utilities/OTP/Email.js');
 
 
 
@@ -86,9 +85,23 @@ const currentUser =await User.findById(decodedToken.userId)
     })
   }
 
-//to push user Id to (add-to-cart)
+
   req.user=currentUser
 next()
+}
+
+exports.restrictTo=()=>{ 
+    return (req,res,next)=>{
+        if(!req.user.isAdmin){
+            return res.status(403).json({
+                status:false,
+                message:"you don't have licence to do this action"
+
+            })
+        }
+        next();
+    }
+
 }
 
 exports.forgotPassword =async(req, res)=> {
@@ -103,7 +116,7 @@ exports.forgotPassword =async(req, res)=> {
 
     const otp = await user.generateOtp()
     await user.save({ validateBeforeSave: false });
-      sendOTP(req.body.email,otp)
+    sendToEmail(req.body.email,otp)
 
     res.status(200).json({
         status:true,
@@ -140,11 +153,13 @@ exports.verifyOTP=async(req,res)=>{
 }
 
 exports.resetPassword = async (req, res) => {
-    //Protect
+
     try {
       const user =req.user;
       user.password=req.body.password
       user.confirmPassword=req.body.confirmPassword
+      user.otp=undefined,
+      user.otpExpires=undefined
       user.save({validateBeforeSave:true})
       res.status(200).json({
         status:true,
@@ -156,7 +171,3 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
-
-//token is valid ??
- /// verify OTP
-// if valid ==> password = newPassword 
